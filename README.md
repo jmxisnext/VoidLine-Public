@@ -115,6 +115,7 @@ Consumer (downstream of core):
 | **v0.1.0-foundation** | Field, constraints, envelope, rail viability, PNR scenario |
 | **v0.2.0-temporal-replay** | Tick engine, event detection, replay, aligned divergence analysis |
 | **v0.2.1-replay-report** | Plain-text replay report artifact for counterfactual demos |
+| **v0.3.0-transition** | Second scenario (3-on-2 fast break), proves generalization across topology and temporal profile |
 
 ---
 
@@ -131,8 +132,9 @@ Consumer (downstream of core):
 - `ConstraintChanges` — remove/add/replace with explicit precedence rules and collision detection
 - `ReplayResult` — per-tick divergence records, first divergence index and timestamp, aggregate summary with max corridor deltas
 - `ReplayReport` — structured report with text rendering: fork timestamp, first divergence, pressure/volume deltas, changed corridors, event attribution, natural-language conclusion
-- PNR scenario (`scenarios/pnr_basic.json`) — 7 nodes, 7 edges, 5 reads off the screen point
-- 89 tests passing
+- PNR scenario (`scenarios/pnr_basic.json`) — 7 nodes, 7 edges, star topology from screen point
+- Transition scenario (`scenarios/transition_3on2.json`) — 8 nodes, 8 edges, cascading topology with two sequential junctions, non-monotonic pressure (constraint activation mid-play)
+- 105 tests passing across both scenarios
 
 ## Not Yet Implemented
 

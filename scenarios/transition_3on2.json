@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "name": "transition_3on2",
+    "version": "1.0",
+    "description": "3-on-2 fast break after a steal. Ball handler pushes up the middle, wing runner sprints the left side, trailer fills behind. Two defenders back, one recovering. Cascading topology with two sequential junctions.",
+    "coordinate_system": "iso4d"
+  },
+  "nodes": [
+    {
+      "id": "outlet",
+      "type": "start",
+      "position": [-38.0, 0.0],
+      "metadata": {"label": "Outlet — ball handler catches steal past half court"}
+    },
+    {
+      "id": "push_lane",
+      "type": "waypoint",
+      "position": [-30.0, 0.0],
+      "metadata": {"label": "Push lane — advancing up the middle"}
+    },
+    {
+      "id": "primary_read",
+      "type": "junction",
+      "position": [-22.0, 2.0],
+      "roles_allowed": ["ball_handler"],
+      "metadata": {"label": "Primary read — top of arc, transition decision"}
+    },
+    {
+      "id": "lane_drive",
+      "type": "junction",
+      "position": [-10.0, -2.0],
+      "roles_allowed": ["ball_handler"],
+      "metadata": {"label": "Lane drive — committed to paint, second decision"}
+    },
+    {
+      "id": "rim",
+      "type": "terminal",
+      "position": [0.0, 0.0],
+      "metadata": {"label": "Rim — finish at basket"}
+    },
+    {
+      "id": "left_wing_3",
+      "type": "terminal",
+      "position": [-18.0, -16.0],
+      "metadata": {"label": "Left wing 3 — wing runner catch-and-shoot"}
+    },
+    {
+      "id": "pull_up_3",
+      "type": "terminal",
+      "position": [-24.0, 5.0],
+      "metadata": {"label": "Pull-up 3 — transition pull-up jumper"}
+    },
+    {
+      "id": "trail_dump",
+      "type": "terminal",
+      "position": [-16.0, 6.0],
+      "metadata": {"label": "Trail dump — trailing big catches for finish"}
+    }
+  ],
+  "edges": [
+    {
+      "id": "advance",
+      "from": "outlet",
+      "to": "push_lane",
+      "corridor": [[-38.0, 0.0], [-34.0, 0.0], [-30.0, 0.0]],
+      "corridor_width": 2.0,
+      "nominal_duration": 0.8,
+      "action_type": "drive",
+      "metadata": {"phase": "push"}
+    },
+    {
+      "id": "speed_push",
+      "from": "push_lane",
+      "to": "primary_read",
+      "corridor": [[-30.0, 0.0], [-26.0, 1.0], [-22.0, 2.0]],
+      "corridor_width": 2.0,
+      "nominal_duration": 0.6,
+      "action_type": "drive",
+      "metadata": {"phase": "advance"}
+    },
+    {
+      "id": "wing_kick",
+      "from": "primary_read",
+      "to": "left_wing_3",
+      "corridor": [[-22.0, 2.0], [-20.0, -6.0], [-18.0, -16.0]],
+      "corridor_width": 1.0,
+      "nominal_duration": 0.3,
+      "roles_allowed": ["ball_handler"],
+      "action_type": "pass",
+      "metadata": {"reads": "kick to wing runner for open 3"}
+    },
+    {
+      "id": "pull_up",
+      "from": "primary_read",
+      "to": "pull_up_3",
+      "corridor": [[-22.0, 2.0], [-23.0, 3.5], [-24.0, 5.0]],
+      "corridor_width": 1.0,
+      "nominal_duration": 0.4,
+      "roles_allowed": ["ball_handler"],
+      "action_type": "drive",
+      "metadata": {"reads": "transition pull-up three"}
+    },
+    {
+      "id": "attack_lane",
+      "from": "primary_read",
+      "to": "lane_drive",
+      "corridor": [[-22.0, 2.0], [-17.0, 0.0], [-10.0, -2.0]],
+      "corridor_width": 1.5,
+      "nominal_duration": 0.8,
+      "roles_allowed": ["ball_handler"],
+      "action_type": "drive",
+      "metadata": {"reads": "attack the lane, beat the top defender"}
+    },
+    {
+      "id": "finish",
+      "from": "lane_drive",
+      "to": "rim",
+      "corridor": [[-10.0, -2.0], [-5.0, -1.0], [0.0, 0.0]],
+      "corridor_width": 1.5,
+      "nominal_duration": 0.6,
+      "roles_allowed": ["ball_handler"],
+      "action_type": "drive",
+      "metadata": {"reads": "finish at the rim"}
+    },
+    {
+      "id": "drop_off",
+      "from": "lane_drive",
+      "to": "trail_dump",
+      "corridor": [[-10.0, -2.0], [-13.0, 2.0], [-16.0, 6.0]],
+      "corridor_width": 1.2,
+      "nominal_duration": 0.3,
+      "roles_allowed": ["ball_handler"],
+      "action_type": "pass",
+      "metadata": {"reads": "dump to trailing big"}
+    },
+    {
+      "id": "late_kick",
+      "from": "lane_drive",
+      "to": "left_wing_3",
+      "corridor": [[-10.0, -2.0], [-14.0, -9.0], [-18.0, -16.0]],
+      "corridor_width": 1.0,
+      "nominal_duration": 0.4,
+      "roles_allowed": ["ball_handler"],
+      "action_type": "pass",
+      "metadata": {"reads": "kick out from paint to wing shooter"}
+    }
+  ]
+}
