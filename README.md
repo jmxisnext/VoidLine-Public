@@ -114,6 +114,7 @@ Consumer (downstream of core):
 |---|---|
 | **v0.1.0-foundation** | Field, constraints, envelope, rail viability, PNR scenario |
 | **v0.2.0-temporal-replay** | Tick engine, event detection, replay, aligned divergence analysis |
+| **v0.2.1-replay-report** | Plain-text replay report artifact for counterfactual demos |
 
 ---
 
@@ -129,8 +130,9 @@ Consumer (downstream of core):
 - `replay_from_tick()` — forks a baseline timeline at one tick, applies constraint changes with deterministic precedence, reruns at exact baseline timestamps, compares aligned timelines at field/corridor/event level
 - `ConstraintChanges` — remove/add/replace with explicit precedence rules and collision detection
 - `ReplayResult` — per-tick divergence records, first divergence index and timestamp, aggregate summary with max corridor deltas
+- `ReplayReport` — structured report with text rendering: fork timestamp, first divergence, pressure/volume deltas, changed corridors, event attribution, natural-language conclusion
 - PNR scenario (`scenarios/pnr_basic.json`) — 7 nodes, 7 edges, 5 reads off the screen point
-- 72 tests passing
+- 89 tests passing
 
 ## Not Yet Implemented
 
