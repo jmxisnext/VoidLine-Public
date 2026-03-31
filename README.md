@@ -49,44 +49,35 @@ The possibility field is what survives their union.
 
 ---
 
-## Example: Pick-and-Roll at the Screen Point
+## Validated Scenarios
 
-Seven constraints active at t=0.0 — on-ball defender shading left, help defender in paint, shot clock at 14s, rightward momentum commitment, screen not yet set, weak-side blind spot, contested pull-up above risk threshold.
+Two scenarios validate that VoidLine generalizes across topology, temporal profile, and dominant constraint direction.
 
-**Result:** 90% of action space removed. 10% surviving possibility.
+| | **PNR (Pick-and-Roll)** | **Transition (3-on-2 Fast Break)** |
+|---|---|---|
+| **Topology** | Star — 1 junction, 5 spokes | Cascading — 2 sequential junctions |
+| **Temporal shape** | Monotonic pressure decrease | Non-monotonic rise-and-fall |
+| **Key event** | Constraints expire, space reopens | Constraint activates mid-play, space closes |
+| **Headline corridor** | `drive_left` | `wing_kick` |
+| **Replay question** | "What if the help defender hadn't rotated?" | "What if the recovering defender hadn't arrived?" |
+| **Replay result** | Pressure stays higher, drive stays degraded | Pressure stays lower, wing kick stays viable |
 
-At t=1.2s, three constraints expire simultaneously (help defender rotates out, screen arrives, momentum decays):
+### PNR: Expiry-Driven Reopening
 
-**Result:** Pressure drops from 90% to 45%. The drive corridor recovers from 86% viability to 97%.
-
-The system names the constraint that blocked each corridor segment and attributes exactly how much space reopened when it expired.
+Seven constraints active at t=0.0. At t=1.2, three expire simultaneously (help defender rotates out, screen arrives, momentum decays). Pressure drops from 90% to 45%. `drive_left` recovers from 86% to 97% viability.
 
 ```
-t=0.0s
-  drive_left       viability=86%   blocked by: help_defender_paint
-  pullup_right     viability=100%
-  reset_left       viability=100%
-  kick_corner      viability=100%
-  pocket_pass      viability=100%
-
-t=1.2s
-  drive_left       viability=97%   (help defender expired)
-  pullup_right     viability=100%
-  reset_left       viability=100%
-  kick_corner      viability=100%
-  pocket_pass      viability=100%
+t=0.0s  drive_left viability=86%   blocked by: help_defender_paint
+t=1.2s  drive_left viability=97%   (help defender expired)
 ```
 
-### Counterfactual: What If the Help Defender Had Not Rotated?
+**Counterfactual:** Replace `help_defender_paint` with a sustained version that never expires. Replay shows pressure stays 20+ points higher and `drive_left` remains degraded. First divergence at t=1.2.
 
-Fork the baseline at t=0. Replace `help_defender_paint` (expires t=1.2) with a sustained version that never expires. Rerun the engine over the same timestamps.
+### Transition: Activation-Driven Closure
 
-- **Baseline:** help expires at t=1.2, pressure drops, `drive_left` reopens to 97% viability
-- **Replay:** help persists, pressure stays higher, `drive_left` remains degraded
-- **First divergence:** occurs at the baseline expiration point (~t=1.2)
-- **Summary:** `drive_left` is the most affected corridor; field pressure stays 20+ percentage points higher in the replay
+Seven constraints including a recovering defender that **activates at t=1.0** (not present at start). Pressure drops as sprint momentum and trail-runner constraints expire, then **rises** when the recovering defender arrives and closes the wing passing lane.
 
-The replay system compares aligned timelines at four levels: field volume, space pressure, corridor viability, and event stream. It identifies the first tick where the two timelines diverge and attributes the divergence to specific constraint changes.
+**Counterfactual:** Remove `recovering_defender_wing` entirely. Replay shows pressure stays low and `wing_kick` remains fully viable. First divergence at t=1.0 — the inverse pattern from PNR.
 
 ---
 
@@ -133,15 +124,18 @@ Consumer (downstream of core):
 - `ReplayResult` — per-tick divergence records, first divergence index and timestamp, aggregate summary with max corridor deltas
 - `ReplayReport` — structured report with text rendering: fork timestamp, first divergence, pressure/volume deltas, changed corridors, event attribution, natural-language conclusion
 - PNR scenario (`scenarios/pnr_basic.json`) — 7 nodes, 7 edges, star topology from screen point
-- Transition scenario (`scenarios/transition_3on2.json`) — 8 nodes, 8 edges, cascading topology with two sequential junctions, non-monotonic pressure (constraint activation mid-play)
+- Transition scenario (`scenarios/transition_3on2.json`) — 8 nodes, 8 edges, cascading topology with two sequential junctions
 - 105 tests passing across both scenarios
 
-## Not Yet Implemented
+---
 
-- Agent archetypes responding differently to the same surviving space
-- Envelope-signature-keyed memory (compact fingerprint of possibility geometry)
+## Known Limitations
 
-These are designed but intentionally deferred until the engine is proven.
+- **Naive pressure aggregation.** Constraint volumes are summed, not geometrically unioned. Two overlapping constraints double-count their removed volume. Reported pressure values are clamped but may overstate true removal in dense constraint configurations. The shape of pressure over time is reliable; exact decimals are not.
+- **Sampling-based corridor viability.** Corridor viability is computed by sampling points along the corridor centerline and testing each against constraint boundaries. This is correct and debuggable but resolution-dependent. Fine-grained spatial effects near constraint boundaries may differ with different sample spacing.
+- **Single-agent per scenario.** Each scenario tracks one agent's possibility field. Multi-agent interaction (e.g., how one agent's constraint field affects another's) is not modeled.
+- **Static constraint geometry.** Constraint boundaries do not move over time — they activate and expire but do not translate. Moving defenders are modeled as sequential transient constraints, not as continuously repositioning boundaries.
+- **Two scenarios validated.** The engine has been tested against PNR and transition topologies. Other play types (post-up, closeout, zone offense) have not been validated.
 
 ---
 
@@ -152,6 +146,12 @@ python -m venv .venv
 source .venv/bin/activate    # or .venv\Scripts\activate on Windows
 pip install -e ".[dev]"
 pytest -v
+```
+
+Run the help-defender replay demo:
+
+```bash
+python -m examples.help_defender_replay
 ```
 
 Requires Python 3.11+.
