@@ -103,11 +103,15 @@ def _generate_conclusion(result: ReplayResult, baseline_events: EventSummary, re
         parts.append("No divergence detected.")
         return " ".join(parts)
 
-    # Pressure direction
-    if s.max_pressure_delta > 0.01:
-        parts.append(f"Replay shows up to {s.max_pressure_delta:.0%} more pressure.")
-    elif s.max_pressure_delta < -0.01:
-        parts.append(f"Replay shows up to {abs(s.max_pressure_delta):.0%} less pressure.")
+    # Pressure direction — derive from divergence records (summary stores abs values)
+    divergent = [d for d in result.divergences if d.is_divergent]
+    if divergent:
+        # Use the signed delta with the largest absolute value
+        peak = max(divergent, key=lambda d: abs(d.pressure_delta))
+        if peak.pressure_delta > 0.01:
+            parts.append(f"Replay shows up to {abs(peak.pressure_delta):.0%} more pressure.")
+        elif peak.pressure_delta < -0.01:
+            parts.append(f"Replay shows up to {abs(peak.pressure_delta):.0%} less pressure.")
 
     # Corridors
     if s.corridors_changed:
